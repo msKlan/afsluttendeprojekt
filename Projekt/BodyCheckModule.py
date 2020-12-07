@@ -3,7 +3,7 @@ import pandas as pd
 import whois
 import socket, ssl
 import OpenSSL
-from datetime import date
+from datetime import date, datetime
 today = date.today()
 
 fakeURL = "https://www.fakewebsite.org/should_not_be_suspicious"
