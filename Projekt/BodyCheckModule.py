@@ -210,12 +210,10 @@ def CheckURLforPhishing(p_url):
 # Submitting_to_email { -1,1 }
     res[16] = 0
 # Abnormal_URL { -1,1 }
-    
-    # realURL = domain.name
-    # match = re.search(realURL, url)
-    # if(match): res[17] = 0
-    # else: res[17] = -1
-    res[17] = 0
+    if (url == w.domain_name):
+        res[17] = 0
+    else:
+        res[17] = 1
 # Redirect  { 0,1 }
     res[18] = 0
 # on_mouseover  { 1,-1 }
