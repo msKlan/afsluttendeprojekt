@@ -5,6 +5,7 @@ w = whois.whois("pythonforbeginners.com")
 import socket, ssl
 import OpenSSL
 import re
+import urllib
 import requests
 from datetime import date, datetime
 from googlesearch import search #pip installed
@@ -175,12 +176,45 @@ def CheckURLforPhishing(p_url):
 # URL_of_Anchor { -1,0,1 }
     res[13] = 0
 # Links_in_tags { 1,-1,0 }
-    res[14] = 0
+    succesrate = 0
+    j = 0
+    domain = 'cdn.sstatic.net'
+    for link in soup.find_all('link', href=True):
+        print(link["href"], "https://" + domain in link['href'])
+        if ("https://" + domain in link['href'] or "http://" + domain in link['href']):
+            successrate += 1
+            print(successrate)
+        j += 1
+        print(j)
+    try:
+        percentage = successrate / float(j) * 100
+    except:
+        res[14] = 1
+
+    if percentage < 17.0:
+        res[14] = 1
+    elif 17.0 <= percentage < 81.0:
+        res[14] = 0
+    else:
+        res[14] = -1
 # SFH  { -1,1,0 }
-    res[15] = 0
+    for form in soup.find_all('form', action=True):
+        if form['action'] == "" or form['action'] == "about:blank":
+            res[15] = -1
+        elif url not in form['action'] and domain not in form['action']:
+            res[15] = 0
+        else:
+            res[15] = 1
+   # res[15] = 1
+    
 # Submitting_to_email { -1,1 }
     res[16] = 0
 # Abnormal_URL { -1,1 }
+    
+    # realURL = domain.name
+    # match = re.search(realURL, url)
+    # if(match): res[17] = 0
+    # else: res[17] = -1
     res[17] = 0
 # Redirect  { 0,1 }
     res[18] = 0
@@ -208,8 +242,9 @@ def CheckURLforPhishing(p_url):
     res[23] = 0
 # DNSRecord   { -1,1 }
     try:
-        print(socket.getaddrinfo(url,80))
+        print(socket.getaddrinfo(url,80) + " dnsrecord")
     except:
+        print("dnsrecord failed")
         res[24] = 1
         
     # print("lookie here"),
