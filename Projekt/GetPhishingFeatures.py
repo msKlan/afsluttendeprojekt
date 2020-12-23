@@ -1,16 +1,17 @@
+from bs4 import BeautifulSoup, SoupStrainer  # pip installed
+from googlesearch import search  # pip installed
+import ssl
+import socket
+import bs4
+from datetime import date, datetime
+import requests
+import urllib
+import re
+import OpenSSL
 import sys
 import pandas as pd
-import whois #maybe pip installed? in which case: pythonwhois
+import whois  # maybe pip installed? in which case: pythonwhois
 w = whois.whois("pythonforbeginners.com")
-import socket, ssl
-import OpenSSL
-import re
-import urllib
-import requests
-from datetime import date, datetime
-from googlesearch import search #pip installed
-from bs4 import BeautifulSoup, SoupStrainer #pip installed
-import bs4
 # from urllib2 import
 
 realURL = "dr.dk"
@@ -18,30 +19,27 @@ fakeURL = "https://www.fakewebsite.org/should_not_be_suspicious"
 fakePhishing = "http://www.gimmeyourinfo.ru.dk.com/@/add_something_suspicious//as_i_go_along.dk"
 
 
-def CheckURLforPhishing(p_url):
+def GetPhishingFeatures(p_url):
     # test_url=p_url
     today = date.today()
     url = p_url.lower()
-    
-
 
     #url = fakePhishing
     res = [0]*31
 
 # having_IP_Address  { -1,1 }
-    #fjern https, http, etc og www og check om det indeholder tal med punktummer
+    # fjern https, http, etc og www og check om det indeholder tal med punktummer
     res[0] = 1
 # URL_Length   { 1,0,-1 }
-    if (len(url)<54):
+    if (len(url) < 54):
         res[1] = -1
-    elif (len(url)>54 and len(url)<75):
+    elif (len(url) > 54 and len(url) < 75):
         res[1] = 0
-    else: 
+    else:
         res[1] = 1
 # Shortining_Service { 1,-1 }
-    if (url.count("bitly" or "tinyurl" or "ow.ly" or "rebrandly" or "t2m" or "clickmeter")>0):
+    if (url.count("bitly" or "tinyurl" or "ow.ly" or "rebrandly" or "t2m" or "clickmeter") > 0):
         res[2] = 1
-        
     else:
         res[2] = 0
 # having_At_Symbol   { 1,-1 }
@@ -53,13 +51,13 @@ def CheckURLforPhishing(p_url):
     doubleslash = url
     doubleslash.replace("https://", "")
     doubleslash.replace("http://", "")
-    if (doubleslash.count("//")>0):
+    if (doubleslash.count("//") > 0):
         res[4] = 1
     else:
         res[4] = 0
 # Prefix_Suffix  { -1,1 }
     if (url.count("-") > 0):
-          res[5] = 1
+        res[5] = 1
     else:
 
         res[5] = 0
@@ -68,7 +66,7 @@ def CheckURLforPhishing(p_url):
         res[6] = -1
     elif (url.count(".") == 2):
         res[6] = 0
-    else: 
+    else:
         res[6] = 1
 # SSLfinal_State  { -1,1,0 }
         res[7] = 0
@@ -78,8 +76,8 @@ def CheckURLforPhishing(p_url):
     # print("crackhead")
     # print(today.strftime("%Y-%m-%d"))
     # print((w.updated_date[0] - w.creation_date[0]).days)
-    
-    #registrar, updated_url, creation_date, expiration_date, name servers
+
+    # registrar, updated_url, creation_date, expiration_date, name servers
     res[8] = 0
 # Favicon { 1,-1 }
     f1 = '<html><head><link rel="shortcut icon" href="https://xx.dk/favicon.ico" /></head><body>Test</body></html>'
@@ -93,7 +91,7 @@ def CheckURLforPhishing(p_url):
     # soup = BeautifulSoup(f4, 'html.parser')
     host = "xx1.dk"
     faviconreturn = 0
-    
+
     for a in soup.find_all('link', href=True):
         if ("favicon" in str(a)):
             first_split = a['href'].split("//")
@@ -120,8 +118,8 @@ def CheckURLforPhishing(p_url):
 # port { 1,-1 }
     res[10] = 0
 # HTTPS_token { -1,1 }
-    nohttpstoken = url.split("//", 1)[1]
-    if (nohttpstoken.count("https")>0):
+    nohttpstoken = url.split("//", 1)[1]  # Tjek om der findes //
+    if (nohttpstoken.count("https") > 0):
         res[11] = 1
     else:
         res[11] = 0
@@ -155,12 +153,10 @@ def CheckURLforPhishing(p_url):
             successrate += 1
             # print(successrate)
         j += 1
-    
+
     print(successrate)
     print(j)
-    
-    
-    
+
     try:
         percentage = successrate / float(j) * 100
         print(percentage)
@@ -207,7 +203,7 @@ def CheckURLforPhishing(p_url):
         else:
             res[15] = 1
    # res[15] = 1
-    
+
 # Submitting_to_email { -1,1 }
     res[16] = 0
 # Abnormal_URL { -1,1 }
@@ -226,9 +222,9 @@ def CheckURLforPhishing(p_url):
 # Iframe { 1,-1 }
     res[22] = 0
 # age_of_domain  { -1,1 }
-    hostname='online.carnegie.dk'
-    #whois
-    port=443
+    hostname = 'online.carnegie.dk'
+    # whois
+    port = 443
 
     cert = ssl.get_server_certificate((hostname, port))
     x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
@@ -241,11 +237,11 @@ def CheckURLforPhishing(p_url):
     res[23] = 0
 # DNSRecord   { -1,1 }
     try:
-        print(socket.getaddrinfo(url,80) + " dnsrecord")
+        print(socket.getaddrinfo(url, 80) + " dnsrecord")
     except:
         print("dnsrecord failed")
         res[24] = 1
-        
+
     # print("lookie here"),
     # print(url)
     # res[24] = 0
@@ -254,10 +250,11 @@ def CheckURLforPhishing(p_url):
 # Page_Rank { -1,1 }
     res[26] = 0
 # Google_Index { 1,-1 }
-    site = search(url,5)
+    site = search(url, 5)
     if(site):
         res[27] = 1
-    else: res[27] = -1
+    else:
+        res[27] = -1
 # Links_pointing_to_page { 1,0,-1 }
     res[28] = 0
 # Statistical_report { -1,1 }
@@ -265,8 +262,9 @@ def CheckURLforPhishing(p_url):
 # Result  { -1,1 }
     res[30] = 0
     return res
-    
-print(CheckURLforPhishing(fakePhishing))
 
 
-#husk ved externe kald, brug "try catch"
+# print(GetPhishingFeatures(fakePhishing))
+
+
+# husk ved externe kald, brug "try catch"
