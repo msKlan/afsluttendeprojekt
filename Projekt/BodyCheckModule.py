@@ -136,28 +136,28 @@ def CheckURLforPhishing(p_url):
     successrate = 0
     j = 0
     domain = 'cdn.sstatic.net'
-    print("https://" + domain)
+    # print("https://" + domain)
     for img in soup.find_all('img', src=True):
-        print(img["src"], "https://" + domain in img['src'])
+        # print(img["src"], "https://" + domain in img['src'])
         if ("https://" + domain in img['src'] or "http://" + domain in img['src']):
             successrate += 1
             # print(successrate)
         j += 1
     for audio in soup.find_all('audio', src=True):
-        print(img["src"], "https://" + domain in img['src'])
+        # print(img["src"], "https://" + domain in img['src'])
         if ("https://" + domain in audio['src'] or "http://" + domain in audio['src']):
             successrate += 1
             # print(successrate)
         j += 1
     for embed in soup.find_all('embed', src=True):
-        print(img["src"], "https://" + domain in img['src'])
+        # print(img["src"], "https://" + domain in img['src'])
         if ("https://" + domain in embed['src'] or "http://" + domain in embed['src']):
             successrate += 1
             # print(successrate)
         j += 1
     
-    print(successrate)
-    print(j)
+    # print(successrate)
+    # print(j)
     
     
     
@@ -165,7 +165,7 @@ def CheckURLforPhishing(p_url):
         percentage = successrate / float(j) * 100
         print(percentage)
     except:
-        return 1
+        res[12] = 1
 
     if percentage < 22.0:
         res[12] = 1

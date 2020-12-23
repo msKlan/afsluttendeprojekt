@@ -134,34 +134,34 @@ def GetPhishingFeatures(p_url):
     successrate = 0
     j = 0
     domain = 'cdn.sstatic.net'
-    print("https://" + domain)
+    # print("https://" + domain)
     for img in soup.find_all('img', src=True):
-        print(img["src"], "https://" + domain in img['src'])
+        # print(img["src"], "https://" + domain in img['src'])
         if ("https://" + domain in img['src'] or "http://" + domain in img['src']):
             successrate += 1
             # print(successrate)
         j += 1
     for audio in soup.find_all('audio', src=True):
-        print(img["src"], "https://" + domain in img['src'])
+        # print(img["src"], "https://" + domain in img['src'])
         if ("https://" + domain in audio['src'] or "http://" + domain in audio['src']):
             successrate += 1
             # print(successrate)
         j += 1
     for embed in soup.find_all('embed', src=True):
-        print(img["src"], "https://" + domain in img['src'])
+        # print(img["src"], "https://" + domain in img['src'])
         if ("https://" + domain in embed['src'] or "http://" + domain in embed['src']):
             successrate += 1
             # print(successrate)
         j += 1
 
-    print(successrate)
-    print(j)
+    # print(successrate)
+    # print(j)
 
     try:
         percentage = successrate / float(j) * 100
-        print(percentage)
+        # print(percentage)
     except:
-        return 1
+        res[12] = 1
 
     if percentage < 22.0:
         res[12] = 1
@@ -169,7 +169,7 @@ def GetPhishingFeatures(p_url):
         res[12] = 0
     else:
         res[12] = -1
-    print(res[12])
+    # print(res[12])
 # URL_of_Anchor { -1,0,1 }
     res[13] = 0
 # Links_in_tags { 1,-1,0 }
@@ -177,12 +177,12 @@ def GetPhishingFeatures(p_url):
     j = 0
     domain = 'cdn.sstatic.net'
     for link in soup.find_all('link', href=True):
-        print(link["href"], "https://" + domain in link['href'])
+        # print(link["href"], "https://" + domain in link['href'])
         if ("https://" + domain in link['href'] or "http://" + domain in link['href']):
             successrate += 1
-            print(successrate)
+            # print(successrate)
         j += 1
-        print(j)
+        # print(j)
     try:
         percentage = successrate / float(j) * 100
     except:
