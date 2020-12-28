@@ -27,7 +27,7 @@ def load_data():
 
     # Extract the outputs from the training data
     outputs = training_data[:, -1]
-    print("outputs", outputs)
+    # print("outputs", outputs)
 
     training_inputs, training_outputs, testing_inputs, testing_outputs = train_test_split(
         inputs, outputs, test_size=0.33)
@@ -60,7 +60,7 @@ def run(classifier, name):
     # Print the accuracy (percentage of phishing websites correctly predicted)
     accuracy = 100.0 * accuracy_score(test_outputs, predictions)
     # print("Accuracy score using {} is: {}".format(name, accuracy)
-    print(name, "Accuracy", accuracy)
+    # print(name, "Accuracy", accuracy)
 
 
 if __name__ == '__main__':
@@ -122,7 +122,9 @@ if __name__ == '__main__':
         data_set = generate_data_set(sys.argv[1])
 
         # Reshape the array
+        # print(len(data_set), data_set)
         data_set = np.array(data_set).reshape(1, -1)
+        # print(len(data_set), data_set)
 
         # Load the date
         train_inputs, test_inputs, train_outputs, test_outputs = load_data()
@@ -132,4 +134,4 @@ if __name__ == '__main__':
             n_estimators=500, max_depth=15, max_leaf_nodes=10000)
         classifier.fit(train_inputs, train_outputs)
 
-        print(classifier.predict(data_set))
+        print(classifier.predict(data_set), classifier.predict_proba(data_set))

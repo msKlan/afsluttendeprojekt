@@ -12,6 +12,9 @@ if __name__ == "__main__":
 
     url = args.u
     input_f = args.i
+    print(input_f)
+
+    # url = "dr.dk" #test url
 
     if (url):
         print(gpf.GetPhishingFeatures(url))

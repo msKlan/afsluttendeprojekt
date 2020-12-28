@@ -225,6 +225,6 @@ def generate_data_set(url):
     # Statistical_report
     data_set.append(-1)
 
-    print(data_set)
+    # print(data_set)
 
     return data_set
