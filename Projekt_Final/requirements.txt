@@ -1,0 +1,15 @@
+numpy
+pandas
+scikit-learn
+beautifulsoup4
+whois
+google
+
+googlesearch
+ssl
+socket
+datetime
+requests
+re
+OpenSSL
+pythonwhois
