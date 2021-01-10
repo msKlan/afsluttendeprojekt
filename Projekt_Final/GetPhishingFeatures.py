@@ -1,15 +1,12 @@
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 from googlesearch import search
 import ssl
-# import socket
-import bs4
 from datetime import date, datetime
 import requests
 import argparse
 import re
 import OpenSSL
 import sys
-import pandas as pd
 import whois
 import time
 
@@ -37,27 +34,28 @@ def GetPhishingFeatures(p_url, p_verdict):
         page = requests.get(url)
         soup = BeautifulSoup(page.text, features="lxml")
     except:
-        soup = -1
-        page = -1
+        soup = False
+        page = False
 
     # Initialiser de pt. 30 målepunkter (features) og 1 resultat
+    # 1 er non-phishing, -1 er phishing, 0 er suspicious
     res = [0]*31
 
-# Indeholder en IP adresse { 1,-1 } (-1 er phishing)
+# Indeholder en IP adresse { 1,-1 }
     if (re.findall(r'[0-9]+(?:\.[0-9]+){3}', url)):
         res[0] = -1
     else:
         res[0] = 1
 
-# Længden af URL'en { 1,0,-1 } (-1 er phishing)
+# Længden af URL'en { 1,0,-1 }
     if (len(url) < 54):
-        res[1] = -1
+        res[1] = 1
     elif (len(url) > 54 and len(url) < 75):
         res[1] = 0
     else:
-        res[1] = 1
+        res[1] = -1
 
-# Benyttes Shortening Services { 1,-1 } (-1 er phishing)
+# Benyttes Shortening Services { 1,-1 }
     ss_match = re.search(r'bit\.ly|goo\.gl|shorte\.st|go2l\.ink|x\.co|ow\.ly|t\.co|tinyurl|tr\.im|is\.gd|cli\.gs|rb\.gy|clickmeter|'
                          r'short\.to|BudURL\.com|ping\.fm|post\.ly|Just\.as|bkite\.com|snipr\.com|fic\.kr|loopt\.us|'
                          r'yfrog\.com|migre\.me|ff\.im|tiny\.cc|url4\.eu|twit\.ac|su\.pr|twurl\.nl|snipurl\.com|'
@@ -70,25 +68,25 @@ def GetPhishingFeatures(p_url, p_verdict):
     else:
         res[2] = 1
 
-# Indeholder @ symbolet { 1,-1 } (-1 er phishing)
+# Indeholder @ symbolet { 1,-1 }
     if (url.count("@") > 0):
         res[3] = -1
     else:
         res[3] = 1
 
-# Indeholder "//" efter efter http/https - double_slash_redirecting { -1,1 } (-1 er phishing)
+# Indeholder "//" efter efter http/https - double_slash_redirecting { 1,-1 }
     if (strip_hdr.count("//") > 0):
         res[4] = -1
     else:
         res[4] = 1
 
-# Findes der "-" i domænenavnet - Prefix_Suffix  { -1,1 } (-1 er phishing)
+# Findes der "-" i domænenavnet - Prefix_Suffix  { 1,-1 }
     if (domain.count("-") > 0):
         res[5] = -1
     else:
         res[5] = 1
 
-# Findes der mere et "." i domænenavnet - having_Sub_Domain  { -1,0,1 } (-1 er phishing)
+# Findes der mere et "." i domænenavnet - having_Sub_Domain  { 1,0,-1 }
     if (domain.count(".") == 1):
         res[6] = 1
     elif (domain.count(".") == 2):
@@ -96,24 +94,27 @@ def GetPhishingFeatures(p_url, p_verdict):
     else:
         res[6] = -1
 
-# Er certifikat > 365 dage (tjekker ikke for om udsteder er trusted - SSLfinal_State  { -1,1,0 } (-1 er phishing)
+# Er certifikat > 365 dage (tjekker ikke for om udsteder er trusted - SSLfinal_State  { 1,0,-1 }
     try:
-        port = 443
-        cert = ssl.get_server_certificate((domain, port))
-        x509 = OpenSSL.crypto.load_certificate(
-            OpenSSL.crypto.FILETYPE_PEM, cert)
+        if (url.startswith("https://")):
+            port = 443
+            cert = ssl.get_server_certificate((domain, port))
+            x509 = OpenSSL.crypto.load_certificate(
+                OpenSSL.crypto.FILETYPE_PEM, cert)
 
-        if ((datetime.strptime(x509.get_notAfter().decode('ascii'), '%Y%m%d%H%M%SZ') -
-             datetime.strptime(x509.get_notBefore().decode('ascii'), '%Y%m%d%H%M%SZ')).days > 365):
-            res[7] = 1
-        # elif (issuer not trusted):
-        #     res[7] = 0
+            if ((datetime.strptime(x509.get_notAfter().decode('ascii'), '%Y%m%d%H%M%SZ') -
+                 datetime.strptime(x509.get_notBefore().decode('ascii'), '%Y%m%d%H%M%SZ')).days > 365):
+                res[7] = 1
+            # elif (issuer not trusted):
+            #     res[7] = 0
+            else:
+                res[7] = -1
         else:
-            res[7] = -1
+            res[7] = 1
     except:
         res[7] = -1
 
-# Har domænenavnet være registreret mere 1 år - Domain_registeration_length { -1,1 } (-1 er phishing)
+# Har domænenavnet være registreret mere 1 år - Domain_registeration_length { 1,-1 }
     try:
         if (whois_domain != -1):
             whois_domain = whois.whois(domain)
@@ -126,7 +127,7 @@ def GetPhishingFeatures(p_url, p_verdict):
     except:
         res[8] = -1
 
-# Har Favicon { 1,-1 } (-1 er phishing)
+# Har Favicon { 1,-1 }
     try:
         for link in soup.find_all('link', href=True):
             if ("favicon" in str(link)):
@@ -148,7 +149,7 @@ def GetPhishingFeatures(p_url, p_verdict):
     except:
         res[9] = 1
 
-# Benyttes en non-standard port { 1,-1 } (-1 er phishing)
+# Benyttes en non-standard port { 1,-1 }
     try:
         port = re.findall(r":([0-9]+)", url)[0]
         if (port in [80, 8080, 443, 8443]):
@@ -156,10 +157,10 @@ def GetPhishingFeatures(p_url, p_verdict):
         else:
             res[10] = -1
     except:
-        res[10] = -1
+        res[10] = 1
 
 
-# Er der https i domænenavnet - HTTPS_token { -1,1 } (-1 er phishing)
+# Er der https i domænenavnet - HTTPS_token { -1,1 }
     try:
         if (strip_hdr.count("https") > 0):
             res[11] = -1
@@ -168,8 +169,8 @@ def GetPhishingFeatures(p_url, p_verdict):
     except:
         res[11] = 1
 
-# Hvor mange referencer til eksterne objekter i forhold til total antal - Request_URL  { 1,0,-1 } (-1 er phishing)
-    if (soup != -1):    # Siden skal være hentet
+# Hvor mange referencer til eksterne objekter i forhold til total antal - Request_URL  { 1,0,-1 }
+    if (soup):    # Siden skal være hentet
         no_ref = 0
         no_ext_ref = 0
         for script_tag in soup.find_all('img', src=True):
@@ -213,8 +214,8 @@ def GetPhishingFeatures(p_url, p_verdict):
     else:
         res[12] = 1
 
-# Antal af bookmarks og eksterne links - URL_of_Anchor { -1,0,1 } (-1 er phishing)
-    if (soup != -1):    # Siden skal være hentet
+# Antal af bookmarks og eksterne links - URL_of_Anchor { -1,0,1 }
+    if (soup):    # Siden skal være hentet
         no_ref = 0
         no_ext_ref = 0
         for a in soup.find_all('a', href=True):      # Tjek all a-tags
@@ -235,8 +236,8 @@ def GetPhishingFeatures(p_url, p_verdict):
     else:
         res[13] = 1
 
-# Antallet af eksterne referencer i Meta, Scripts og Links - Links_in_tags { 1,0,-1 } (-1 er phishing)
-    if (soup != -1):    # Siden skal være hentet
+# Antallet af eksterne referencer i Meta, Scripts og Links - Links_in_tags { 1,0,-1 }
+    if (soup):    # Siden skal være hentet
         no_ref = 0
         no_ext_ref = 0
         for script_tag in soup.find_all('meta', src=True):
@@ -281,7 +282,7 @@ def GetPhishingFeatures(p_url, p_verdict):
         res[14] = 1
 
 
-# Tjek submit aktion i forms - SFH  { -1,0,1 } (-1 er phishing)
+# Tjek submit aktion i forms - SFH  { -1,0,1 }
     try:
         for form in soup.find_all('form', action=True):
             action_domain = re.findall(
@@ -295,8 +296,8 @@ def GetPhishingFeatures(p_url, p_verdict):
     except:
         res[15] = 1
 
-# Benyttes der mail() eller mailto: - Submitting_to_email { -1,1 } (-1 er phishing)
-    if (page != -1):
+# Benyttes der mail() eller mailto: - Submitting_to_email { -1,1 }
+    if (page):
         if re.findall(r"[mail\(\)|mailto:?]", page.text):
             res[16] = -1
         else:
@@ -304,7 +305,7 @@ def GetPhishingFeatures(p_url, p_verdict):
     else:
         res[16] = 1
 
-# Indgår domæanenavnet i whois i url - Abnormal_URL { -1,1 } (-1 er phishing)
+# Indgår domæanenavnet i whois i url - Abnormal_URL { -1,1 }
     try:
         if (str(whois_domain.domain_name) in url):
             res[17] = 1
@@ -313,8 +314,8 @@ def GetPhishingFeatures(p_url, p_verdict):
     except:
         res[17] = -1
 
-# Antal af omdirigeringer - Redirect  { 1,0,-1 } (-1 er phishing)
-    if (page != -1):
+# Antal af omdirigeringer - Redirect  { 1,0,-1 }
+    if (page):
         if len(page.history) <= 1:
             res[18] = 1
         elif len(page.history) <= 4:
@@ -324,26 +325,26 @@ def GetPhishingFeatures(p_url, p_verdict):
     else:
         res[18] = 1
 
-# on_mouseover  { 1,-1 } (1 er phishing)
-    if (page != -1):
+# on_mouseover  { 1,-1 }
+    if (page):
         if re.findall("<script>.+onmouseover.+</script>", page.text):
-            res[19] = 1
-        else:
             res[19] = -1
-    else:
-        res[19] = -1
-
-# Findes der kode for at fange højreklik - RightClick  { 1,-1 } (1 er phishing)
-    if (page != -1):
-        if re.findall(r"event.button ?== ?2", page.text):
-            res[20] = 1
         else:
-            res[20] = -1
+            res[19] = 1
     else:
-        res[20] = -1
+        res[19] = 1
 
-# Benyttes alert med tekstfelter - popUpWindow  { -1,1 }
-    if (page != -1):
+# Findes der kode for at fange højreklik - RightClick  { 1,-1 }
+    if (page):
+        if re.findall(r"event.button ?== ?2", page.text):
+            res[20] = -1
+        else:
+            res[20] = 1
+    else:
+        res[20] = 1
+
+# Benyttes alert med tekstfelter - popUpWindow  { 1,-1 }
+    if (page):
         if re.findall(r"alert\(", page.text):  # Tjek for textfelter
             res[21] = -1
         else:
@@ -352,7 +353,7 @@ def GetPhishingFeatures(p_url, p_verdict):
         res[21] = 1
 
 # Benyttes skjulte iframes - Iframe { 1,-1 }
-    if (page != -1):
+    if (page):
         if re.findall(r"[<iframe>|<frameBorder>]", page.text):  # Tjek om det virker
             res[22] = 1
         else:
@@ -360,7 +361,7 @@ def GetPhishingFeatures(p_url, p_verdict):
     else:
         res[22] = -1
 
-# Alder på domæane - age_of_domain  { -1,1 } (-1 er phishing)
+# Alder på domæane - age_of_domain  { 1,-1 }
     try:
         if ((today - whois_domain.creation_date.date()).days < 180):  # 180 dage ~ 6 måneder
             res[23] = -1
@@ -369,13 +370,13 @@ def GetPhishingFeatures(p_url, p_verdict):
     except:
         res[23] = 1
 
-# Er domæne registreret i DNS - DNSRecord   { -1,1 } (-1 er phishing)
+# Er domæne registreret i DNS - DNSRecord   { 1,-1 }
     if (whois_domain == -1):
         res[24] = -1
     else:
         res[24] = 1
 
-# Hvilken rank har den i Alexa the Web Information Company - web_traffic  { -1,0,1 } (-1 er phishing)
+# Hvilken rank har den i Alexa the Web Information Company - web_traffic  { 1,0,-1 }
     try:    # Kræver betalt konto hos Alexa
         rank = int(BeautifulSoup(request.get(
             "http://data.alexa.com/data?cli=10&dat=s&url=" + url).text, "xml").find("REACH")['RANK'])
@@ -386,20 +387,20 @@ def GetPhishingFeatures(p_url, p_verdict):
     except:
         res[25] = -1
 
-# Hvilken pagerank har url'en - Page_Rank { -1,1 } (-1 er phishing)
+# Hvilken pagerank har url'en - Page_Rank { 1,-1 }
     try:
         rank_checker_response = requests.post(
             "https://www.checkpagerank.net/index.php", {"name": domain})
         global_rank = int(re.findall(
             r"Global Rank: ([0-9]+)", rank_checker_response.text)[0])
         if global_rank > 0 and global_rank < 100000:
-            res[26] = -1
-        else:
             res[26] = 1
+        else:
+            res[26] = -1
     except:
         res[26] = 1
 
-# Findes url'en i Google Index - Google_Index { 1,-1 } (-1 er phishing)
+# Findes url'en i Google Index - Google_Index { 1,-1 }
     try:
         site = search(url, 5)
         if(site):
@@ -408,24 +409,25 @@ def GetPhishingFeatures(p_url, p_verdict):
             res[27] = -1
     except:
         print("Exceeded number of searches!")
+        res[27] = 1
 
-# Links_pointing_to_page { 1,0,-1 } (1 er phishing)
+# Links_pointing_to_page { 1,0,-1 }
     try:
         number_of_links = len(re.findall(r"<a href=", page.text))
         if number_of_links == 0:
-            res[28] = 1
+            res[28] = -1
         elif number_of_links <= 2:
             res[28] = 0
         else:
-            res[28] = -1
+            res[28] = 1
     except:
         res[28] = -1
 
 
-# Statistical_report { -1,1 } (-1 er phishing)
+# Statistical_report { 1,-1 }
     res[29] = 1  # Man skal købe sig til at kunne forespørge via api
 
-# Result  { -1,1 } (-1 er phishing)
+# Result  { 1,-1 }
     res[30] = p_verdict
     return res
 # ---------------------------------------------------------------------------------
@@ -463,20 +465,3 @@ if __name__ == '__main__':
                 toc = time.perf_counter()
                 print(
                     f"It took {toc - tic:0.2f} seconds to get phishing details for {line.strip()}")
-                # print("url {}\n".format(line.strip()))
-                # print("url {}\n{}".format(line.strip(),
-                #                           GetPhishingFeatures(line.strip(), verdict)))
-
-        ''' Åbne input_f
-			læs linje for linje
-				CheckURLforPhishing(url) og output i en fil
-		'''
-
-    # if len(sys.argv) > 1:
-    #     u = sys.argv[1]
-
-    # print(GetPhishingFeatures(u, 1))
-
-    # husk ved externe kald, brug "try catch"
-
-    # w = whois.whois("pythonforbeginners.com")

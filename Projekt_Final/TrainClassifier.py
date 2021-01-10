@@ -63,6 +63,8 @@ if __name__ == '__main__':
 
     if (url):       # Der angivet -u <URL>
         # load the model from disk
+        classifier = RandomForestClassifier(
+            n_estimators=25, max_depth=15, max_leaf_nodes=15000)
         classifier = pickle.load(open('randomforest.mod', 'rb'))
 
         # Hent og adskild input målepunkter fra datasæt
@@ -74,7 +76,7 @@ if __name__ == '__main__':
 
     if (input_train):   # Der angivet -t <fil af træningsdata>
         classifier = RandomForestClassifier(
-            n_estimators=500, max_depth=15, max_leaf_nodes=15000)
+            n_estimators=25, max_depth=15, max_leaf_nodes=15000)
         load_train_save(classifier, input_train)
 
     if (input_file):

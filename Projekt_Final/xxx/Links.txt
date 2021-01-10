@@ -1,0 +1,56 @@
+https://www.kaggle.com/shubha23/identification-of-phishing-websites
+https://www.kaggle.com/akashkr/phishing-url-eda-and-modelling
+https://towardsdatascience.com/phishing-domain-detection-with-ml-5be9c99293e5
+https://rishy.github.io/projects/2015/05/08/phishing-websites-detection/
+https://github.com/fafal-abnir/phishing_detection/blob/master/dataset_description.ipynb
+https://archive.ics.uci.edu/ml/machine-learning-databases/00327/
+https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html?highlight=random%20forest#sklearn.ensemble.RandomForestClassifier
+https://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_importances.html
+
+
+Hentede inspiration og eksempler på kode mht. Flask
+https://flask.palletsprojects.com/en/1.1.x/quickstart/
+https://programminghistorian.org/en/lessons/creating-apis-with-python-and-flask
+
+Materiale brugt til bedre forstå Decision Tree og Random Forest classifiers
+https://www.analyticsvidhya.com/blog/2020/05/decision-tree-vs-random-forest-algorithm/#:~:text=Each%20node%20in%20the%20decision,to%20generate%20the%20final%20output.&text=The%20Random%20Forest%20Algorithm%20combines,to%20generate%20the%20final%20output.
+https://builtin.com/data-science/random-forest-algorithm
+https://www.kaggle.com/niklasdonges/end-to-end-project-with-python
+
+Test data med 11.055 features allerede dannet
+https://archive.ics.uci.edu/ml/machine-learning-databases/00327/  ('Training Dataset.arff' samt beskrivelse 'Phishing Websites Features.docx')
+
+Lister over phishing links
+https://github.com/mitchellkrogza/Phishing.Database
+
+Til at tweake regular expressions til ønskede formål
+https://regexr.com/
+https://regex101.com/
+
+
+
+
+
+
+
+-----
+Hjælp til at beskrive fordele ved ML
+https://blog.innofactor.com/dk/machine-learning-derfor-er-det-en-fordel#:~:text=Machine%20Learning%20kan%20let%20bruge,for%20at%20finde%20relevante%20variabler.
+
+
+Hjælp til at yderligere beskrive features
+https://core.ac.uk/download/pdf/192063218.pdf
+
+Hjælp til at skrive mere om URL phishing vha Random Forest
+https://acadpubl.eu/hub/2018-118-21/articles/21e/49.pdf
+
+Hjælp til at beskrive phishing
+https://www.trendmicro.com/en_in/what-is/phishing/types-of-phishing.html
+https://www.csoonline.com/article/2117843/what-is-phishing-how-this-cyber-attack-works-and-how-to-prevent-it.html
+https://www.csoonline.com/article/3234716/8-types-of-phishing-attacks-and-how-to-identify-them.html
+https://www.kaspersky.dk/resource-center/preemptive-safety/what-is-phishings-impact-on-email
+
+Youtube - ML og RF
+https://www.youtube.com/watch?v=eM4uJ6XGnSM
+https://www.youtube.com/watch?v=nKW8Ndu7Mjw&list=PLIivdWyY5sqJxnwJhe3etaK7utrBiPBQ2&index=2
+https://www.youtube.com/watch?v=3kYujfDgmNk
